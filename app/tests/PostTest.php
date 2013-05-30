@@ -1,20 +1,34 @@
 <?php
-use Way\Tests\Factory;
 
 class PostTest extends TestCase {
 	use Way\Tests\ModelHelpers;
 
-	/** Setup **/
+	/** Clean Up **/
 
-	public function setUp()
+	protected $post;
+
+	protected function _cleanUp()
 	{
-		Artisan::call('migrate:refresh');
+		$app = $this->createApplication();
+
+		$app->make('artisan')->call('migrate:refresh');
+		//Artisan::call('migrate:refresh');
+		
+		$post = new Post();
+		$post->slug = 'testing';
+		$post->title = 'Testing';
+		$post->user_id = 1;
+
+		$this->post = $post;
+
 	}
 
 	/** Relationships **/
 	
 	public function testPostHasOneUser()
 	{
+		$this->_cleanUp();
+
 		$this->assertHasOne('users', 'Post');
 	}
 
@@ -22,41 +36,59 @@ class PostTest extends TestCase {
 	
 	public function testPostHasUniqueSlug()
 	{
-		$post = Factory::create('post',  array('slug' => 'test', 'user_id' => 1));
+		$this->_cleanUp();
 
-		$post = Factory::post(array('slug' => 'test', 'user_id' => 1));
+		$this->post->save();
+
+		$post = new Post();
+		$post->slug = 'testing';
+		$post->title = 'Testing';
+		$post->user_id = 1;
 
 		$this->assertNotValid($post);
 	}
 
-	/*public function testPostHasSlug()
-	{
-
-	}
-
 	public function testPostInvalidWithoutSlug()
 	{
+		$this->_cleanUp();
 
-	}
+		$this->post->slug = null;
 
-	public function testPostHasTitle()
-	{
-
+		$this->assertNotValid($this->post);
 	}
 
 	public function testPostInvalidWithoutTitle()
 	{
+		$this->_cleanUp();
 
+		$this->post->title = null;
+
+		$this->assertNotValid($this->post);
 	}
 
-	public function testPostHasAuthor()
+	public function testPostInvalidWithoutAuthor()
 	{
+		$this->_cleanUp();
 
+		$this->post->user_id = null;
+
+		$this->assertNotValid($this->post);
 	}
 
-	public function testPostInvalidWithoutAutho()
+	public function textPostInvalidNotIntegerForAuthor()
 	{
+		$this->_cleanUp();
 
-	}*/
+		$this->post->user_id = 'string';
+
+		$this->assertNotValid($this->post);
+	}
+
+	public function testPostValid()
+	{
+		$this->_cleanUp();
+
+		$this->assertValid($this->post);
+	}
 
 }
